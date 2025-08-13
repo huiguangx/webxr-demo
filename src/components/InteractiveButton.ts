@@ -27,6 +27,7 @@ export class InteractiveButton {
   private options: Required<InteractiveButtonOptions>;
   private callback?: () => void;
   private label: string;
+  private textElement: ThreeMeshUI.Text;
 
   // 状态属性
   private idleStateAttributes: object;
@@ -49,7 +50,7 @@ export class InteractiveButton {
       textColor: options.textColor ?? 0xffffff,
       idleColor: options.idleColor ?? 0x663336,
       hoveredColor: options.hoveredColor ?? 0x9aa999,
-      selectedColor: options.selectedColor ?? 0x386777,
+      selectedColor: options.selectedColor ?? 0x27f53c,
       idleOpacity: options.idleOpacity ?? 0.3,
       hoveredOpacity: options.hoveredOpacity ?? 1,
       selectedOpacity: options.selectedOpacity ?? 1,
@@ -87,12 +88,12 @@ export class InteractiveButton {
     }) as ThreeMeshUI.Block & IInteractiveObject;
 
     // 添加文本
-    const text = new ThreeMeshUI.Text({
+    this.textElement = new ThreeMeshUI.Text({
       content: this.label,
       fontSize: this.options.fontSize,
       fontColor: new THREE.Color(this.options.textColor),
     });
-    this.block.add(text);
+    this.block.add(this.textElement);
 
     // 设置交互属性
     this.block.isUI = true;
@@ -157,14 +158,20 @@ export class InteractiveButton {
   }
 
   /**
-   * 根据外部状态更新按钮颜色
+   * 根据外部状态更新按钮颜色和文案
    * @param isActive 按钮是否处于激活状态
-   * @param {type} FN_PARAMS
+   * @param activeLabel 激活状态下的文案（可选）
+   * @param inactiveLabel 非激活状态下的文案（可选）
    */
-  public updateButtonState(isActive: boolean): void {
+  public updateButtonState(
+    isActive: boolean,
+    activeLabel?: string,
+    inactiveLabel?: string
+  ): void {
     console.log(`Updating button state to ${isActive ? "active" : "inactive"}`);
+
+    // 更新背景颜色和透明度
     if (this.block.set) {
-      // 直接更新背景颜色和透明度
       this.block.set({
         backgroundColor: new THREE.Color(
           isActive ? this.options.selectedColor : this.options.idleColor
@@ -173,15 +180,27 @@ export class InteractiveButton {
           ? this.options.hoveredOpacity
           : this.options.idleOpacity,
       });
-
-      // 更新当前状态跟踪
-      (this.block as IInteractiveObject).__currentState = isActive
-        ? "active"
-        : "idle";
-      console.log(
-        `Button color updated to ${isActive ? "active" : "idle"} color`
-      );
     }
+
+    // 更新文本内容
+    if (this.textElement) {
+      const newContent = isActive
+        ? activeLabel || "opening"
+        : inactiveLabel || "close";
+
+      (this.textElement as any).set({
+        content: newContent,
+      });
+
+      console.log(`Button text updated to "${newContent}"`);
+    }
+
+    // 更新当前状态跟踪
+    (this.block as IInteractiveObject).__currentState = isActive
+      ? "active"
+      : "idle";
+
+    console.log(`Button state updated to ${isActive ? "active" : "idle"}`);
   }
 
   public getObject3D(): ThreeMeshUI.Block & IInteractiveObject {

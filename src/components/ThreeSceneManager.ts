@@ -168,7 +168,7 @@ export class ThreeSceneManager {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.camera.position.set(0, 1.6, 0);
     this.controls.target = new THREE.Vector3(0, 1, -1.8);
-    this.controls.update();
+    // this.controls.update();
 
     // Add room
     const room = new THREE.LineSegments(
@@ -256,7 +256,7 @@ export class ThreeSceneManager {
       new THREE.Vector3(0, 0.6, -1.2),
       debounce(() => {
         // TODO: 替换为你的 mesh 切换逻辑
-        console.log("Next button clicked");
+        button1.updateButtonState(true);
       }, 500)
     );
     setInterval(() => {
@@ -316,6 +316,31 @@ export class ThreeSceneManager {
 
     // 启动轮询请求
     this.startPolling(this.dataCollectionButton);
+
+    // 创建包装的ToggleSwitch组件
+    this.toggleSwitch = this.createCustomToggle(
+      new THREE.Vector3(0.5, 0.5, -1.8),
+      "Feature Control", // 顶部文字
+      "Toggle Status", // 底部文字
+      false, // 初始值
+      debounce((value) => {
+        console.log("Toggle value changed:", value);
+        // 在这里处理开关状态变化的逻辑
+      }, 300)
+    );
+
+    // 演示动态更新ToggleSwitch状态和文案（临时注释掉避免卡死）
+    setInterval(() => {
+      const isOn = Math.random() > 0.5; // 随机状态用于演示
+      console.log("Updating toggle state:", isOn);
+
+      // 更新开关状态，并根据状态显示不同文案
+      this.toggleSwitch.updateSwitchState(
+        isOn,
+        "功能已开启", // 开启状态文案
+        "功能已关闭" // 关闭状态文案
+      );
+    }, 3000);
 
     // Start animation loop
     this.renderer.setAnimationLoop(this.loop.bind(this));
@@ -504,7 +529,7 @@ export class ThreeSceneManager {
     });
 
     const Button = this.createInteractiveButton(
-      "Next",
+      "opening",
       new THREE.Vector3(),
       onClick
     );
@@ -532,6 +557,96 @@ export class ThreeSceneManager {
     bottomBox.add(bottomText);
     container.add(topBox, buttonContainer, bottomBox);
     return Button;
+  }
+
+  /**
+   * 创建一个包装的 ToggleSwitch 组件（包含顶部和底部文字）
+   * @param position 组件在场景中的位置
+   * @param topText 顶部显示的文字
+   * @param bottomText 底部显示的文字
+   * @param initialValue 开关的初始值
+   * @param callback 状态改变时的回调函数
+   * @returns ToggleSwitch实例
+   */
+  public createCustomToggle(
+    position: THREE.Vector3,
+    topText: string = "Toggle Switch",
+    bottomText: string = "Switch Status",
+    initialValue: boolean = false,
+    callback?: (value: boolean) => void
+  ): ToggleSwitch {
+    // 创建主容器（垂直排列）
+    const container = new ThreeMeshUI.Block({
+      width: 0.5,
+      height: 0.5,
+      contentDirection: "column", // 垂直排列
+      justifyContent: "center", // 垂直方向均匀分布
+      alignItems: "center", // 水平方向居中
+      fontFamily: FontJSON,
+      fontTexture: FontImage,
+      fontSize: 0.07,
+      padding: 0.05,
+      borderRadius: 0.1,
+      backgroundColor: new THREE.Color(0x222222),
+      backgroundOpacity: 0.8,
+    });
+    container.position.copy(position);
+    this.scene.add(container);
+
+    // 上方文字
+    const topTextElement = new ThreeMeshUI.Text({
+      content: topText,
+      fontSize: 0.05,
+      fontColor: new THREE.Color(0xffffff),
+    });
+
+    // 开关容器
+    const toggleContainer = new ThreeMeshUI.Block({
+      width: 0.5,
+      height: 0.2,
+      contentDirection: "row", // 水平排列
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 0.02,
+      backgroundOpacity: 0, // 透明
+    });
+
+    // 创建ToggleSwitch
+    const toggle = this.createToggleSwitch(
+      "Toggle", // 内部标签
+      new THREE.Vector3(),
+      initialValue,
+      callback
+    );
+
+    const topBox = new ThreeMeshUI.Block({
+      width: 0.5,
+      height: 0.1,
+      justifyContent: "center",
+      backgroundOpacity: 0, // 透明
+    });
+
+    const bottomBox = new ThreeMeshUI.Block({
+      width: 0.5,
+      height: 0.1,
+      justifyContent: "center",
+      backgroundOpacity: 0, // 透明
+    });
+
+    toggleContainer.add(toggle.getObject3D());
+
+    // 下方文字
+    const bottomTextElement = new ThreeMeshUI.Text({
+      content: bottomText,
+      fontSize: 0.05,
+      fontColor: new THREE.Color(0xcccccc),
+    });
+
+    topBox.add(topTextElement);
+    bottomBox.add(bottomTextElement);
+    container.add(topBox, toggleContainer, bottomBox);
+
+    return toggle;
   }
 
   /**
