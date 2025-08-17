@@ -129,8 +129,13 @@ export class InteractionManager {
   }
 
   public update(): void {
-    // console.log("InteractionManager update called");
+    // 每帧开始，先把所有 pointer 隐藏
+    this.vrControl.controllers.forEach((c) => {
+      if (c.point) c.point.visible = false;
+    });
+
     let intersect: THREE.Intersection | null = null;
+
     if (this.renderer.xr.isPresenting) {
       this.vrControl.setFromController(0, this.raycaster.ray);
       intersect = this.raycast();
@@ -139,7 +144,6 @@ export class InteractionManager {
       } else {
         this.vrControl.setFromController(1, this.raycaster.ray);
         intersect = this.raycast();
-
         if (intersect) {
           this.vrControl.setPointerAt(1, intersect.point);
         }
@@ -147,6 +151,10 @@ export class InteractionManager {
     } else if (!isNaN(this.mouse.x) && !isNaN(this.mouse.y)) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
       intersect = this.raycast();
+      if (intersect) {
+        // 给非VR模式一个 pointer 也行，比如用 controller[0]
+        this.vrControl.setPointerAt(0, intersect.point);
+      }
     }
 
     this.updateObjectStates(intersect);

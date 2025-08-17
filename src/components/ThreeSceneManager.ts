@@ -319,28 +319,25 @@ export class ThreeSceneManager {
 
     // 创建包装的ToggleSwitch组件
     this.toggleSwitch = this.createCustomToggle(
-      new THREE.Vector3(0.5, 0.5, -1.8),
+      new THREE.Vector3(0.5, 1.5, -1.8),
       "Feature Control", // 顶部文字
-      "Toggle Status", // 底部文字
+      // "Toggle Status", // 底部文字
+      "",
       false, // 初始值
       debounce((value) => {
         console.log("Toggle value changed:", value);
+        this.toggleSwitch.updateFromServer(-2);
         // 在这里处理开关状态变化的逻辑
       }, 300)
     );
-
+    this.toggleSwitch.updateFromServer(2);
     // 演示动态更新ToggleSwitch状态和文案（临时注释掉避免卡死）
+    const states = [-2, -1, 0, 1, 2];
     setInterval(() => {
-      const isOn = Math.random() > 0.5; // 随机状态用于演示
-      console.log("Updating toggle state:", isOn);
-
-      // 更新开关状态，并根据状态显示不同文案
-      this.toggleSwitch.updateSwitchState(
-        isOn,
-        "功能已开启", // 开启状态文案
-        "功能已关闭" // 关闭状态文案
-      );
-    }, 3000);
+      const randomState = states[Math.floor(Math.random() * states.length)];
+      console.log("Updating toggle state:", randomState);
+      this.toggleSwitch.updateFromServer(randomState);
+    }, 2000);
 
     // Start animation loop
     this.renderer.setAnimationLoop(this.loop.bind(this));
@@ -944,6 +941,7 @@ export class ThreeSceneManager {
 
     // 更新交互管理器
     this.interactionManager.update();
+    this.toggleSwitch.update(10); // 或者你用的 1
 
     // 渲染场景
     this.renderer.render(this.scene, this.camera);

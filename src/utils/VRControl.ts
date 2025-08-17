@@ -28,8 +28,9 @@ export default class VRControls {
   }
 
   private createRayHelper(): THREE.Mesh {
-    const geometry = new THREE.BoxGeometry(0.004, 0.004, 0.35);
-    geometry.translate(0, 0, -0.15);
+    const rayLength = 2.0; // 2米长
+    const geometry = new THREE.BoxGeometry(0.004, 0.004, rayLength);
+    geometry.translate(0, 0, -rayLength / 2);
     this.setupUVCoordinates(geometry);
 
     const material = new THREE.MeshBasicMaterial({
